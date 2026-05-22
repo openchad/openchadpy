@@ -110,18 +110,14 @@ logger = logging.getLogger(__name__)
 logging.getLogger().addHandler(startup_tracker.get_handler())
 
 # Initialize Directories
-_PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
-_SRC_DIR = os.path.dirname(_PACKAGE_DIR)
-_PYTHON_ROOT = os.path.dirname(_SRC_DIR)
-_PROJECT_ROOT = os.path.dirname(_PYTHON_ROOT)
+_PROJECT_ROOT = os.environ.get("OPENCHAD_PROJECT_DIR", os.path.abspath(__file__))
+_PYTHON_ROOT = os.path.dirname(os.path.join(_PROJECT_ROOT, 'python'))
 
 # If running as a package, config might be in the python root or package dir
 _CONFIG_PATH = os.environ.get("OPENCHAD_CONFIG_PATH")
 if not _CONFIG_PATH:
     _CONFIG_PATH = os.path.join(_PYTHON_ROOT, "config.json")
-    if not os.path.exists(_CONFIG_PATH):
-        _CONFIG_PATH = os.path.join(_PACKAGE_DIR, "config.json")
-
+    
 # Define Plugin Directories
 BACKENDS_DIR = os.environ.get("OPENCHAD_BACKENDS_DIR", os.path.join(_PROJECT_ROOT, "Backend"))
 PIPELINES_DIR = os.environ.get("OPENCHAD_PIPELINES_DIR", os.path.join(_PROJECT_ROOT, "Pipeline"))
