@@ -1871,12 +1871,7 @@ async def health_check():
 # =+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+=
 # Frontend Serving
 # =+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+==+=+=
-# Get paths
-# _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# ROOT_DIR = os.path.dirname(_SCRIPT_DIR)
-# DIST_DIR = os.path.join(ROOT_DIR, "dist")
-# Mount static assets (must be built first with 'npm run build')
-if os.path.exists(_PROJECT_ROOT):
+if os.path.exists(os.path.join(_PROJECT_ROOT, "frontend", "assets")):
     app.mount("/assets", StaticFiles(directory=os.path.join(_PROJECT_ROOT, "frontend", "assets")), name="assets")
 
 @app.get("/{path_name:path}")
@@ -1924,8 +1919,7 @@ def main() -> int:
     """Run the concurrent FastAPI + Tauri application."""
     global task_group
     # Ensure project root is correct for Tauri
-    SRC_TAURI_DIR = Path(_PACKAGE_DIR)
-    TAURI_APP_WHEEL_DEV = os.environ.get("TAURI_APP_WHEEL_DEV") == "1"
+    SRC_TAURI_DIR = Path(os.path.abspath(__file__))
     import concurrent.futures
     with start_blocking_portal("asyncio") as portal:
         try:
