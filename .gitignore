@@ -3,3 +3,5 @@ uv.lock
 .env
 __pycache__
 dist
+tests/
+.env
