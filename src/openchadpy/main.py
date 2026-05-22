@@ -1919,7 +1919,7 @@ def main() -> int:
     """Run the concurrent FastAPI + Tauri application."""
     global task_group
     # Ensure project root is correct for Tauri
-    SRC_TAURI_DIR = Path(os.path.abspath(__file__)).parent
+    SRC_TAURI_DIR = Path(_PROJECT_ROOT)
     import concurrent.futures
     with start_blocking_portal("asyncio") as portal:
         try:
