@@ -1,6 +1,6 @@
 [project]
 name = "openchadpy"
-version = "0.1.0"
+version = "0.1.1"
 description = "OpenChad Python Package"
 authors = [
     { name = "Hafidz Ihza Pratama"},
