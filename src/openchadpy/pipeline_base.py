@@ -56,24 +56,20 @@ class PipelineBase:
     async def llm_tool(
         self,
         query: str,
-        tool_name: Optional[str] = None,
         tool_registry: Optional[Dict[str, ToolRegistry]] = None,
     ) -> Dict[str, Any]:
         chat_kwargs: Dict[str, Any] = {}
         mid_ctx = model_id_ctx.get()
-        tools: list = self.tool_manager.get_openai_schemas() if self.tool_manager else []
+        tools: list = []
+        
         if tool_registry:
             for reg in tool_registry.values():
-                tools.append(reg.schema)
-        if self.mcp_manager:
-            tools.extend(self.mcp_manager.get_openai_schemas())
-        if tools:
-            chat_kwargs["tools"] = tools
-            if tool_name:
-                chat_kwargs["tool_choice"] = {
-                    "type": "function",
-                    "function": {"name": tool_name}
-                }
+                tools.extend(reg.schema)
+        else: 
+            if self.tool_manager:
+                tools.extend(self.tool_manager.get_openai_schemas())
+            if self.mcp_manager:
+                tools.extend(self.mcp_manager.get_openai_schemas())
         if self.model_manager:
             model_id = mid_ctx if mid_ctx else self.model_manager.get_default_id("llm")
             if model_id:
