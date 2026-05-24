@@ -59,14 +59,16 @@ class ToolBase(ABC):
         
         if tool_registry:
             for reg in tool_registry.values():
-                tools.extend(reg.schema)
+                tools.append(reg.schema)
         else: 
             if self.tool_manager:
                 tools.extend(self.tool_manager.get_openai_schemas())
             if self.mcp_manager:
                 tools.extend(self.mcp_manager.get_openai_schemas())
+            
         if tools:
             chat_kwargs["tools"] = tools
+                
         if self.model_manager:
             model_id = mid_ctx if mid_ctx else self.model_manager.get_default_id("llm")
             if model_id:
@@ -75,10 +77,9 @@ class ToolBase(ABC):
                         {
                             "role": "system",
                             "content": (
-                                "You are a tool-calling assistant. You MUST call a tool for every single response  "
-                                "text-only responses are strictly forbidden.\n\n"
+                                "You are a tool-calling assistant. You MUST call a tool for every single response"
                                 "RULES:\n"
-                                "1. Every response must be a tool call. No exceptions. Never respond with plain text.\n"
+                                "1. Every response must be a tool call.\n"
                                 "2. Read each tool's description fully and follow it exactly.\n"
                                 "3. Match the user's intent to the correct tool. Do not guess or improvise.\n"
                             ),
@@ -89,13 +90,19 @@ class ToolBase(ABC):
                     stream=False,
                     **chat_kwargs,
                 )
+                
                 assert isinstance(response, dict), f"Expected dict, got {type(response)}"
                 logger.info(f"[llm_tool] query {query}")
+                logger.info(f"[llm_tool] response {type(response)}, {json.dumps(response)}")
+                logger.info(f"[llm_tool] tools available {type(tools)}, {json.dumps(tools)}")
                 try:
                     tool_calls = response["choices"][0]["message"].get("tool_calls")
                 except (KeyError, IndexError, TypeError):
+                    logger.error(f"[llm_tool] error when try to get tool calls")
                     tool_calls = None
                     return {}
+                if not tool_calls:
+                    logger.error("[llm_tool] no tool_calls")
                 if tool_calls and (self.tool_manager or tool_registry):
                     results = {}
                     for call in tool_calls:
