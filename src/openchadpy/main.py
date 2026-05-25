@@ -1931,9 +1931,6 @@ def main() -> int:
                 tauri_config = {
                     "build": {
                         "frontendDist": "http://localhost:" + (VITE_PORT if DEV_MODE else str(port)),
-                    },
-                    "app": {
-                        "csp": None
                     }
                 }
                 # Build and run the app
