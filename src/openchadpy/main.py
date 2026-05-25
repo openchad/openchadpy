@@ -1933,9 +1933,7 @@ def main() -> int:
                         "frontendDist": "http://localhost:" + (VITE_PORT if DEV_MODE else str(port)),
                     },
                     "app": {
-                        "security": {
-                        "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost https://esm.sh; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' asset: https://asset.localhost data: blob:"
-                        }
+                        "csp": None
                     }
                 }
                 # Build and run the app
