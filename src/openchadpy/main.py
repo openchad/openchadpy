@@ -4,8 +4,6 @@ from openchadpy.tool_base import ToolBase
 import os, shutil
 import sys
 
-os.environ["_PYTAURI_DIST"] = "pytauri-wheel"
-
 from mcp.server.fastmcp import FastMCP
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -686,6 +684,14 @@ async def pytauri_command(body: Dict[str, Any], app_handle: AppHandle) -> Dict[s
     logger.info(f"Received command: {command} with request: {request}") 
     try:
         match command:
+            case 'eval': 
+                script = request.get("script")
+                label = request.get("label")
+                if label: 
+                    window = Manager.get_webview_window(app_handle, label)
+                    if window and script:
+                        window.eval(script)
+                return {'result': 'ok'}
             case 'set_active':
                 w = request.get("workspace")
                 tid = request.get("tab_id")
@@ -1152,6 +1158,13 @@ async def mcp_tool_reload_api(request: Request):
     except Exception as e:
         return {'error': str(e)}
 
+@app.post('/api/eval')
+async def eval_api(request: Request):
+    """
+    Evaluate a script.
+    """
+    return {'error': 'eval command is not supported from HTTP Request'}
+
 @app.post("/api/mcp_tool/statuses")
 async def mcp_tool_statuses_api(request: Request):
     return {'statuses': mcp_manager.mcp_statuses}
@@ -1389,6 +1402,8 @@ async def handle_ws_command(conn_id: str, data: dict, send_func: Callable[[dict]
     msg_id = data.get("id", "")
     try:
         match api:
+            case 'eval':
+                return { "error": "eval command is not supported from websocket" }
             case "stream_ready":
                 return {"message": "OK"}
             case "sqlite":
