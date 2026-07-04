@@ -1,3 +1,6 @@
+from __future__ import annotations
+from openchadpy.context import fields_ctx
+import inspect
 import json
 import logging
 from abc import ABC, abstractmethod
@@ -5,6 +8,7 @@ from typing import Any, Dict, List, Literal, Callable, Optional, Awaitable, Unio
 from .context import workspace_ctx, tab_id_ctx, model_id_ctx
 from .database import Database
 if TYPE_CHECKING:
+    from .code_sandbox import CodeSandbox
     from .model_manager import ModelManager
     from .tool_manager import ToolManager
     from .settings import Settings
@@ -24,7 +28,10 @@ class ToolRegistry():
         self.schema = schema
 
     async def execute(self, **kwargs) -> Dict[str, Any]:
-        return await self.call(**kwargs)
+        res = self.call(**kwargs)
+        if inspect.isawaitable(res):
+            return await res
+        return res
     
 class ToolBase(ABC):
     """
@@ -47,6 +54,19 @@ class ToolBase(ABC):
     settings_manager: Optional["Settings"]
     event_emitter: Optional["EventEmitter"]
     mcp_manager: Optional["MCPManager"]
+    code_sandbox: Optional["CodeSandbox"]
+
+    def get_field(self, name: str) -> Any:
+        f = fields_ctx.get()
+        # Fast path: field is at the top level (already-scoped context).
+        val = f.get(name, None)
+        if val is None and self.name:
+            # Fallback: fields are nested under the tool name,
+            # e.g. {'delegate': {'Target Agent': '...'}}
+            tool_fields = f.get(self.name, {})
+            if isinstance(tool_fields, dict):
+                val = tool_fields.get(name, None)
+        return val
 
     async def llm_tool(
         self,
@@ -59,12 +79,7 @@ class ToolBase(ABC):
         
         if tool_registry:
             for reg in tool_registry.values():
-                tools.append(reg.schema)
-        else: 
-            if self.tool_manager:
-                tools.extend(self.tool_manager.get_openai_schemas())
-            if self.mcp_manager:
-                tools.extend(self.mcp_manager.get_openai_schemas())
+                tools.append(reg.schema)     
             
         if tools:
             chat_kwargs["tools"] = tools
@@ -103,7 +118,7 @@ class ToolBase(ABC):
                     return {}
                 if not tool_calls:
                     logger.error("[llm_tool] no tool_calls")
-                if tool_calls and (self.tool_manager or tool_registry):
+                if tool_calls:
                     results = {}
                     for call in tool_calls:
                         fn_name: str = call["function"]["name"]
@@ -119,16 +134,7 @@ class ToolBase(ABC):
                         if tool_registry and fn_name in tool_registry:
                             result = await tool_registry[fn_name].execute(**kwargs)
                         else:
-                            if self.tool_manager:
-                                result = await self.tool_manager.execute_tool(
-                                    fn_name,
-                                    caller="direct",
-                                    workspace=self.workspace,
-                                    tab_id=self.tab_id,
-                                    **kwargs,
-                                )
-                            else:
-                                return {}
+                            return {}
                         results[call_id] = result
                     return results[next(iter(results))] if len(results) == 1 else results
                 return {}

@@ -6,3 +6,4 @@ if TYPE_CHECKING:
 workspace_ctx: ContextVar[Optional[str]] = ContextVar("workspace", default="global")
 tab_id_ctx: ContextVar[Optional[str]] = ContextVar("tab_id", default="global")
 model_id_ctx: ContextVar[Optional[str]] = ContextVar("model_id", default=None)
+fields_ctx: ContextVar[Dict[str, Any]] = ContextVar("fields", default={})
