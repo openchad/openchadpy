@@ -56,6 +56,79 @@ class ToolBase(ABC):
     mcp_manager: Optional["MCPManager"]
     code_sandbox: Optional["CodeSandbox"]
 
+
+    async def get_all_tasks(self) -> List[Dict[str, Any]]:
+        return []
+
+    async def get_task(self, id: str) -> Optional[Dict[str, Any]]:
+        return {}
+
+    async def set_task_interval(self, id: str, interval: str) -> bool:
+        return False
+
+    async def set_task_query(self, id: str, query: str) -> bool:
+        return False
+
+    async def run_task(self, id: str) -> bool:
+        return False
+
+    async def disable_task(self, id: str) -> bool:
+        return False
+
+    async def delete_task(self, id: str) -> bool:
+        return False
+
+    def _normalize_agent(self, agent: Dict[str, Any]) -> Dict[str, Any]:
+        return {}
+
+    async def _find_agent_tree(self, agent_id: str) -> Optional[str]:
+        return None
+
+    async def get_agent_trees(self) -> List[Dict[str, Any]]:
+        return []
+
+    async def get_agents(self, agent_id: str) -> Dict[str, Dict[str, Any]]:
+        return {}
+
+    async def get_agent_tree(self, agent_id: str) -> Dict[str, Any]:
+        return {}
+
+    async def get_agent(self, agent_id: str) -> Optional[Dict[str, Any]]:
+        return None
+
+    async def update_agent(self, agent_id: str, properties: Dict[str, Any]) -> bool:
+        return False
+
+    async def add_agent(
+        self,
+        agent_id: str,
+        name: str,
+        parent_id: Optional[str] = None,
+        model: Optional[str] = None,
+        tools: Optional[List[str]] = None,
+        allow_multiple: bool = False,
+        enable_programmatic_tool_calling: bool = False,
+        additional_args: Optional[Dict[str, Any]] = None,
+        skill_path: Optional[str] = None
+    ) -> bool:
+        return False
+
+    async def delete_agent(self, agent_id: str) -> bool:
+        return False
+
+    async def update_agent_tree(self, agent_id: str, tree: Dict[str, Any]) -> bool:
+        return False
+
+    async def get_models(self) -> List[Dict[str, Any]]:
+        return []
+
+    async def create_task(self, query: str, agent_id: str, interval: Optional[str] = "once") -> Optional[str]:
+        return None
+
+    async def create_agent_tree(self, tree: Dict[str, Any]) -> Optional[str]:
+        return None
+
+
     def get_field(self, name: str) -> Any:
         f = fields_ctx.get()
         # Fast path: field is at the top level (already-scoped context).
